@@ -14,6 +14,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater.Filter;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -26,21 +27,24 @@ import android.widget.Toast;
 
 public class MainActivity extends Activity {
 
-	EditText etQuery;
-	GridView gvResults;
-	Button btnSearch;
+	private EditText etQuery;
+	private GridView gvResults;
+	private Button btnSearch;
 
-	ArrayList<ImageResult> imgResults = new ArrayList<ImageResult>();
-	ImageResultArrayAdapter imageResultAdapter;
+	private ArrayList<ImageResult> imgResults = new ArrayList<ImageResult>();
+	private ImageResultArrayAdapter imageResultAdapter;
 
-	String jsonQueryPrefix = "https://ajax.googleapis.com/ajax/services/search/images?rsz=8&v=1.0";
-
+	private String jsonQueryPrefix = "https://ajax.googleapis.com/ajax/services/search/images?rsz=8&v=1.0";
+	
+	private final int SETTINGS_REQUEST = 1;
+	private SearchFilters filters = new SearchFilters();
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 		// question, why not setup imgResults here ?
-		
+
 		setUpViews();
 		imageResultAdapter = new ImageResultArrayAdapter(this, imgResults);
 		gvResults.setAdapter(imageResultAdapter);
@@ -56,6 +60,13 @@ public class MainActivity extends Activity {
 		});
 	}
 
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		// Inflate the menu; this adds items to the action bar if it is present.
+		getMenuInflater().inflate(R.menu.search_settings, menu);
+		return true;//
+	}
+
 	void setUpViews() {
 		etQuery = (EditText) findViewById(R.id.etQuery);
 		gvResults = (GridView) findViewById(R.id.gvResults);
@@ -65,31 +76,70 @@ public class MainActivity extends Activity {
 
 	public void onImageSearch(View v) {
 		String query = jsonQueryPrefix + "&start=" + 0 + "&q=" + Uri.encode(etQuery.getText().toString());
-		
+
+		// Add query filters
+		if (filters.getSize().length() > 0) {
+			query += "&imgsz=" + filters.getSize();
+		}
+		if (filters.getColor().length() > 0) {
+			query += "&imgcolor=" + filters.getColor();
+		}
+		if (filters.getType().length() > 0) {
+			query += "&imgtype=" + filters.getType();
+		}
 		//Toast.makeText(this, "searching for " + query, Toast.LENGTH_LONG).show();
 
 		AsyncHttpClient client = new AsyncHttpClient();
 		Log.d("DEBUG", "Query: " + query);
 		client.get(query,
-				   new JsonHttpResponseHandler() {
-					@Override
-					public void onSuccess(JSONObject resp) {
-						JSONArray imgJsonResults = null;
-						try {
-							imgJsonResults = resp.getJSONObject("responseData").getJSONArray("results");
-							Log.d("Debug", "Size of the result is " + imgJsonResults.length());
-							
-							imgResults.clear();
-							imageResultAdapter.addAll(ImageResult.fromJSONArray(imgJsonResults));
-							
-							// Log information for debugging purposes
-							Log.d("DEBUG", imgResults.toString());
-						} catch (JSONException e) {
-							// TODO : Try to indicate to the user that search query failed
-							Log.d("Debug", "Search query failed");
-							e.printStackTrace();
-						}
-					}});
+				new JsonHttpResponseHandler() {
+			@Override
+			public void onSuccess(JSONObject resp) {
+				JSONArray imgJsonResults = null;
+				try {
+					imgJsonResults = resp.getJSONObject("responseData").getJSONArray("results");
+					Log.d("Debug", "Size of the result is " + imgJsonResults.length());
+
+					imgResults.clear();
+					imageResultAdapter.addAll(ImageResult.fromJSONArray(imgJsonResults));
+
+					// Log information for debugging purposes
+					Log.d("DEBUG", imgResults.toString());
+				} catch (JSONException e) {
+					// TODO : Try to indicate to the user that search query failed
+					Log.d("Debug", "Search query failed");
+					e.printStackTrace();
+				}
+			}});
 	}
 
+
+	public void onClickSettings(MenuItem  item) {
+		Toast.makeText(getApplicationContext(), "Id: " + item.getItemId(), Toast.LENGTH_LONG).show();
+		switch (item.getItemId()) {
+		case R.id.miSettings :
+			showSettingsPage();
+		default:
+			return;
+		}
+
+	}
+
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		switch(requestCode) {
+		case SETTINGS_REQUEST:
+			filters = (SearchFilters) data.getSerializableExtra("filters");
+			Toast.makeText(getApplicationContext(), filters.getColor() + " " + filters.getSite() + " ", Toast.LENGTH_LONG).show();
+		default:
+			return;
+		}
+	}
+
+	private void showSettingsPage() {
+		// TODO Auto-generated method stub
+		Intent i = new Intent(getBaseContext(), SettingsActivity.class);
+		i.putExtra("filters", filters);
+		startActivityForResult(i, SETTINGS_REQUEST);
+	}
 }
