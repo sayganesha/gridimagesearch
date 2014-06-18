@@ -5,7 +5,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
 
@@ -15,7 +14,6 @@ public class SettingsActivity extends Activity {
 	private Spinner spColor;
 	private Spinner spType;
 	private EditText etSite;
-	private Button btnSave;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -26,7 +24,6 @@ public class SettingsActivity extends Activity {
 		spColor = (Spinner) findViewById(R.id.spSettingsColor);
 		spType = (Spinner) findViewById(R.id.spSettingsType);
 		etSite = (EditText) findViewById(R.id.etSettingsSite);
-		btnSave = (Button) findViewById(R.id.btnSearch);
 
 		// get the previously selected filters
 		Intent i = getIntent();

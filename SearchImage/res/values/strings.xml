@@ -8,35 +8,35 @@
     <string name="title_activity_image_display">ImageDisplayActivity</string>
     <string name="lblSettings">Settings</string>
     <string name="title_activity_settings">SettingsActivity</string>
-    <string name="lblSettingsSize">Size :</string>
-    <string name="lblSettingsColor">Color :</string>
-    <string name="lblSettingsType">Type :</string>
-    <string name="lblSettingsSite">Site :</string>
+    <string name="lblSettingsSize">Size</string>
+    <string name="lblSettingsColor">Color</string>
+    <string name="lblSettingsType">Type</string>
+    <string name="lblSettingsSite">Site</string>
     <string name="lblSettingsSave">Done</string>
 
     <string-array name="settings_size">
         <item ></item>
-        <item>Small</item>
-        <item>Medium</item>
-        <item>Large</item>
-        <item >Xlarge</item>
+        <item>small</item>
+        <item>medium</item>
+        <item>large</item>
+        <item >xlarge</item>
     </string-array>
 
     <string-array name="settings_color">
         <item ></item>
-        <item>Red</item>
-        <item>Blue</item>
-        <item>Green</item>
-        <item >Black</item>
-        <item >Brown</item>
+        <item>red</item>
+        <item>blue</item>
+        <item>green</item>
+        <item >black</item>
+        <item >brown</item>
     </string-array>
 
     <string-array name="settings_type">
         <item ></item>
-        <item>Face</item>
-        <item>Photo</item>
-        <item>Clipart</item>
-        <item >LineArt</item>
+        <item>face</item>
+        <item>photo</item>
+        <item>clipart</item>
+        <item >lineart</item>
     </string-array>
         <string name="hintSettingsSite">Enter Site names</string>
     

@@ -6,38 +6,38 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.loopj.android.http.AsyncHttpClient;
-import com.loopj.android.http.JsonHttpResponseHandler;
-
 import android.app.Activity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.LayoutInflater.Filter;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.GridView;
-import android.widget.Toast;
+
+import com.loopj.android.http.AsyncHttpClient;
+import com.loopj.android.http.JsonHttpResponseHandler;
 
 public class MainActivity extends Activity {
 
 	private EditText etQuery;
 	private GridView gvResults;
-	private Button btnSearch;
+	
 
 	private ArrayList<ImageResult> imgResults = new ArrayList<ImageResult>();
 	private ImageResultArrayAdapter imageResultAdapter;
 
 	private String jsonQueryPrefix = "https://ajax.googleapis.com/ajax/services/search/images?rsz=8&v=1.0";
-	
+
 	private final int SETTINGS_REQUEST = 1;
 	private SearchFilters filters = new SearchFilters();
+
+	private int curr_page = 0;
+	private final int MAX_PAGES = 8;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -58,6 +58,25 @@ public class MainActivity extends Activity {
 				startActivity(i);
 			}
 		});
+		gvResults.setOnScrollListener(new EndlessScrollListener() {
+			@Override
+			public void onLoadMore(int page, int totalItemsCount) {
+				// Triggered only when new data needs to be appended to the list
+				// Add whatever code is needed to append new items to your AdapterView
+				customLoadMoreDataFromApi(page); 
+				// or customLoadMoreDataFromApi(totalItemsCount); 
+			}
+
+		});
+	}
+
+
+	private void customLoadMoreDataFromApi(int page) {
+		if (page > MAX_PAGES) {
+			return;
+		}
+		curr_page = page;
+		performSearch();
 	}
 
 	@Override
@@ -70,52 +89,16 @@ public class MainActivity extends Activity {
 	void setUpViews() {
 		etQuery = (EditText) findViewById(R.id.etQuery);
 		gvResults = (GridView) findViewById(R.id.gvResults);
-		btnSearch = (Button) findViewById(R.id.btnSearch);
 	}  
 
 
 	public void onImageSearch(View v) {
-		String query = jsonQueryPrefix + "&start=" + 0 + "&q=" + Uri.encode(etQuery.getText().toString());
-
-		// Add query filters
-		if (filters.getSize().length() > 0) {
-			query += "&imgsz=" + filters.getSize();
-		}
-		if (filters.getColor().length() > 0) {
-			query += "&imgcolor=" + filters.getColor();
-		}
-		if (filters.getType().length() > 0) {
-			query += "&imgtype=" + filters.getType();
-		}
-		//Toast.makeText(this, "searching for " + query, Toast.LENGTH_LONG).show();
-
-		AsyncHttpClient client = new AsyncHttpClient();
-		Log.d("DEBUG", "Query: " + query);
-		client.get(query,
-				new JsonHttpResponseHandler() {
-			@Override
-			public void onSuccess(JSONObject resp) {
-				JSONArray imgJsonResults = null;
-				try {
-					imgJsonResults = resp.getJSONObject("responseData").getJSONArray("results");
-					Log.d("Debug", "Size of the result is " + imgJsonResults.length());
-
-					imgResults.clear();
-					imageResultAdapter.addAll(ImageResult.fromJSONArray(imgJsonResults));
-
-					// Log information for debugging purposes
-					Log.d("DEBUG", imgResults.toString());
-				} catch (JSONException e) {
-					// TODO : Try to indicate to the user that search query failed
-					Log.d("Debug", "Search query failed");
-					e.printStackTrace();
-				}
-			}});
+		curr_page = 0;  
+	    performSearch();
 	}
 
 
 	public void onClickSettings(MenuItem  item) {
-		Toast.makeText(getApplicationContext(), "Id: " + item.getItemId(), Toast.LENGTH_LONG).show();
 		switch (item.getItemId()) {
 		case R.id.miSettings :
 			showSettingsPage();
@@ -130,16 +113,57 @@ public class MainActivity extends Activity {
 		switch(requestCode) {
 		case SETTINGS_REQUEST:
 			filters = (SearchFilters) data.getSerializableExtra("filters");
-			Toast.makeText(getApplicationContext(), filters.getColor() + " " + filters.getSite() + " ", Toast.LENGTH_LONG).show();
 		default:
 			return;
 		}
-	}
+	}  
 
 	private void showSettingsPage() {
-		// TODO Auto-generated method stub
 		Intent i = new Intent(getBaseContext(), SettingsActivity.class);
 		i.putExtra("filters", filters);
 		startActivityForResult(i, SETTINGS_REQUEST);
+	}
+	
+	public void performSearch() {
+		String query = jsonQueryPrefix + "&start=" + curr_page + "&q=" + Uri.encode(etQuery.getText().toString());
+
+		// Add query filters
+		if (filters.getSize().length() > 0) {
+			query += "&imgsz=" + filters.getSize();
+		}
+		if (filters.getColor().length() > 0) {
+			query += "&imgcolor=" + filters.getColor();
+		}
+		if (filters.getType().length() > 0) {
+			query += "&imgtype=" + filters.getType();
+		}
+		if (filters.getSite().length() > 0) {
+			query += "&as_sitesearch=" + Uri.encode(filters.getSite());
+		}
+
+		AsyncHttpClient client = new AsyncHttpClient();
+		Log.d("DEBUG", "Query: " + query);
+		client.get(query,
+				new JsonHttpResponseHandler() {
+			@Override
+			public void onSuccess(JSONObject resp) {
+				JSONArray imgJsonResults = null;
+				try {
+					imgJsonResults = resp.getJSONObject("responseData").getJSONArray("results");
+					Log.d("Debug", "Size of the result is " + imgJsonResults.length());
+
+					if (curr_page == 0) {
+						imgResults.clear();
+					}
+					imageResultAdapter.addAll(ImageResult.fromJSONArray(imgJsonResults));
+
+					// Log information for debugging purposes
+					Log.d("DEBUG", imgResults.toString());
+				} catch (JSONException e) {
+					// TODO : Try to indicate to the user that search query failed
+					Log.d("Debug", "Search query failed");
+					e.printStackTrace();
+				}
+			}});
 	}
 }
