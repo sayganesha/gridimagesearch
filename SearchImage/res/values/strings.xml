@@ -6,7 +6,7 @@
     <string name="btnSearchLabel">Search</string>
     <string name="etQueryHint">Enter Search Item</string>
     <string name="title_activity_image_display">ImageDisplayActivity</string>
-    <string name="lblSettings">Settings</string>
+    <string name="lblSettings">Filters</string>
     <string name="title_activity_settings">SettingsActivity</string>
     <string name="lblSettingsSize">Size</string>
     <string name="lblSettingsColor">Color</string>

@@ -19,6 +19,6 @@ public class ImageDisplayActivity extends Activity {
 		
 		SmartImageView ivImage = (SmartImageView) findViewById(R.id.ivResult);
 		ivImage.setImageUrl(img.getFullUrl());
-
+  
 	}
 }

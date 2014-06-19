@@ -12,25 +12,29 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
-import android.widget.EditText;
 import android.widget.GridView;
+import android.widget.SearchView;
+import android.widget.SearchView.OnQueryTextListener;
 
 import com.loopj.android.http.AsyncHttpClient;
 import com.loopj.android.http.JsonHttpResponseHandler;
 
 public class MainActivity extends Activity {
 
-	private EditText etQuery;
-	private GridView gvResults;
 	
+	private GridView gvResults;
+	MenuItem searchItem;
+
 
 	private ArrayList<ImageResult> imgResults = new ArrayList<ImageResult>();
 	private ImageResultArrayAdapter imageResultAdapter;
-
+	private SearchView searchView = null;
+	
 	private String jsonQueryPrefix = "https://ajax.googleapis.com/ajax/services/search/images?rsz=8&v=1.0";
 
 	private final int SETTINGS_REQUEST = 1;
@@ -38,7 +42,7 @@ public class MainActivity extends Activity {
 
 	private int curr_page = 0;
 	private final int MAX_PAGES = 8;
-	
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -82,19 +86,39 @@ public class MainActivity extends Activity {
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.search_settings, menu);
-		return true;//
+		MenuInflater inflater = getMenuInflater();
+	    inflater.inflate(R.menu.search_settings, menu);
+		
+
+		MenuItem searchItem = menu.findItem(R.id.miaction_search);
+		searchView = (SearchView) searchItem.getActionView();
+		searchView.setOnQueryTextListener(new OnQueryTextListener() {
+			@Override
+			public boolean onQueryTextSubmit(String query) {
+				curr_page = 0;  
+				performSearch();
+				return true;
+			}
+
+			@Override
+			public boolean onQueryTextChange(String newText) {
+				return false;
+			}
+		});
+		return super.onCreateOptionsMenu(menu);
+
+
 	}
 
 	void setUpViews() {
-		etQuery = (EditText) findViewById(R.id.etQuery);
+		//etQuery = (EditText) findViewById(R.id.etQuery);
 		gvResults = (GridView) findViewById(R.id.gvResults);
 	}  
 
 
 	public void onImageSearch(View v) {
 		curr_page = 0;  
-	    performSearch();
+		performSearch();
 	}
 
 
@@ -123,9 +147,10 @@ public class MainActivity extends Activity {
 		i.putExtra("filters", filters);
 		startActivityForResult(i, SETTINGS_REQUEST);
 	}
-	
+
 	public void performSearch() {
-		String query = jsonQueryPrefix + "&start=" + curr_page + "&q=" + Uri.encode(etQuery.getText().toString());
+		String input_query = searchView.getQuery().toString();
+		String query = jsonQueryPrefix + "&start=" + curr_page + "&q=" + Uri.encode(input_query);
 
 		// Add query filters
 		if (filters.getSize().length() > 0) {
