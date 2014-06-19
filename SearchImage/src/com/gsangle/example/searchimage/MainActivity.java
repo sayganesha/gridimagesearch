@@ -155,7 +155,7 @@ public class MainActivity extends Activity {
 		// Add query filters
 		if (filters.getSize().length() > 0) {
 			query += "&imgsz=" + filters.getSize();
-		}
+		}  
 		if (filters.getColor().length() > 0) {
 			query += "&imgcolor=" + filters.getColor();
 		}
@@ -178,12 +178,17 @@ public class MainActivity extends Activity {
 					Log.d("Debug", "Size of the result is " + imgJsonResults.length());
 
 					if (curr_page == 0) {
-						imgResults.clear();
+						imageResultAdapter.clear();
 					}
-					imageResultAdapter.addAll(ImageResult.fromJSONArray(imgJsonResults));
-
+					ArrayList<ImageResult> newImgResults =
+							ImageResult.fromJSONArray(imgJsonResults);
+					for(int i = 0; i < newImgResults.size(); ++i) {
+						imageResultAdapter.add(newImgResults.get(i));
+					}
+					  
+  
 					// Log information for debugging purposes
-					Log.d("DEBUG", imgResults.toString());
+					Log.d("DEBUG", "img result size is " + imgJsonResults.length());
 				} catch (JSONException e) {
 					// TODO : Try to indicate to the user that search query failed
 					Log.d("Debug", "Search query failed");

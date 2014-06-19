@@ -10,7 +10,7 @@
     <item
         android:orderInCategory="3"
         android:id="@+id/miSettings"
-        android:icon="@drawable/ic_settings"
+        android:icon="@drawable/ic_action_filter"
         android:showAsAction="ifRoom"
         android:title="@string/lblSettings"
         android:onClick="onClickSettings">
