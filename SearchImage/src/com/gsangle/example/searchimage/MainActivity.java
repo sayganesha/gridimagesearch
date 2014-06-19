@@ -42,6 +42,8 @@ public class MainActivity extends Activity {
 
 	private int curr_page = 0;
 	private final int MAX_PAGES = 8;
+	
+	private String curr_query;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -95,7 +97,14 @@ public class MainActivity extends Activity {
 		searchView.setOnQueryTextListener(new OnQueryTextListener() {
 			@Override
 			public boolean onQueryTextSubmit(String query) {
-				curr_page = 0;  
+				curr_page = 0;
+				if (curr_page == 0 && curr_query != null && curr_query.equals(query)) {
+					return true;
+					// we are being invoked twice, ignore;
+				}
+				// User wants to start a fresh query
+				curr_page = 0;
+				curr_query = new String(query);
 				performSearch();
 				return true;
 			}
@@ -114,12 +123,6 @@ public class MainActivity extends Activity {
 		//etQuery = (EditText) findViewById(R.id.etQuery);
 		gvResults = (GridView) findViewById(R.id.gvResults);
 	}  
-
-
-	public void onImageSearch(View v) {
-		curr_page = 0;  
-		performSearch();
-	}
 
 
 	public void onClickSettings(MenuItem  item) {
@@ -150,7 +153,7 @@ public class MainActivity extends Activity {
 
 	public void performSearch() {
 		String input_query = searchView.getQuery().toString();
-		String query = jsonQueryPrefix + "&start=" + curr_page + "&q=" + Uri.encode(input_query);
+		String query = jsonQueryPrefix + "&start=" + curr_page*MAX_PAGES + "&q=" + Uri.encode(input_query);
 
 		// Add query filters
 		if (filters.getSize().length() > 0) {
@@ -176,19 +179,17 @@ public class MainActivity extends Activity {
 				try {
 					imgJsonResults = resp.getJSONObject("responseData").getJSONArray("results");
 					Log.d("Debug", "Size of the result is " + imgJsonResults.length());
-
+  
 					if (curr_page == 0) {
 						imageResultAdapter.clear();
 					}
-					ArrayList<ImageResult> newImgResults =
-							ImageResult.fromJSONArray(imgJsonResults);
-					for(int i = 0; i < newImgResults.size(); ++i) {
-						imageResultAdapter.add(newImgResults.get(i));
-					}
-					  
+					imageResultAdapter.addAll(
+							ImageResult.fromJSONArray(imgJsonResults));
+					
   
 					// Log information for debugging purposes
-					Log.d("DEBUG", "img result size is " + imgJsonResults.length());
+					Log.d("DEBUG", "img result aa size is " + imageResultAdapter.getCount());
+					Log.d("DEBUG", "img result size is " + imgResults.size());
 				} catch (JSONException e) {
 					// TODO : Try to indicate to the user that search query failed
 					Log.d("Debug", "Search query failed");
